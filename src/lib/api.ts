@@ -13,9 +13,11 @@ export const fetchPrefectures = async (): Promise<PrefectureResponse> => {
 };
 
 //人口
-export const fetchPopulationData = async (prefCode: number) => {
+export const fetchPopulationData = async (
+  prefCode: number
+): Promise<PrefectureResponse> => {
   try {
-    const response = await axios.get(
+    const response = await axios.get<PrefectureResponse>(
       `/api/prefectures/population?prefCode=${prefCode}`
     );
     return response.data;
