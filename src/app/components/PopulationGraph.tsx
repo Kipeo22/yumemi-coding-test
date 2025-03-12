@@ -35,6 +35,8 @@ const COLORS = [
   "#d0ed57",
 ];
 
+const CATEGORIES = ["総人口", "年少人口", "生産年齢人口", "老年人口"];
+
 const PopulationGraph: React.FC<PopulationGraphProps> = ({
   selectedPrefectures,
   prefectureNames,
@@ -44,18 +46,16 @@ const PopulationGraph: React.FC<PopulationGraphProps> = ({
   >({});
   const [formattedData, setFormattedData] = useState<FormattedData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("総人口"); // 追加
 
-  // Fetch population data for selected prefectures
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       const newData: Record<number, PopulationResponse> = { ...populationData };
 
-      // Fetch data for prefectures that haven't been loaded yet
       for (const prefCode of selectedPrefectures) {
         if (!populationData[prefCode]) {
           try {
-            // 修正：型を PopulationResponse として明示的に指定
             const response = (await fetchPopulationData(
               prefCode
             )) as unknown as PopulationResponse;
@@ -76,38 +76,32 @@ const PopulationGraph: React.FC<PopulationGraphProps> = ({
     if (selectedPrefectures.length > 0) {
       fetchData();
     }
-  }, [selectedPrefectures, populationData]); // 修正：依存配列に populationData を追加
+  }, [selectedPrefectures, populationData]);
 
-  // Format data for recharts when populationData changes
   useEffect(() => {
     if (Object.keys(populationData).length === 0) {
       setFormattedData([]);
       return;
     }
 
-    // Find total population data for each prefecture
-    const prefTotalPopulation: Record<number, PopulationData[]> = {};
+    const prefPopulation: Record<number, PopulationData[]> = {};
 
     for (const prefCode of Object.keys(populationData).map(Number)) {
       const prefData = populationData[prefCode];
       if (prefData && prefData.result) {
-        // Find the "総人口" (total population) category
-        const totalPopCategory = prefData.result.data.find(
-          (category) => category.label === "総人口"
+        const categoryData = prefData.result.data.find(
+          (category) => category.label === selectedCategory
         );
 
-        if (totalPopCategory) {
-          prefTotalPopulation[prefCode] = totalPopCategory.data;
+        if (categoryData) {
+          prefPopulation[prefCode] = categoryData.data;
         }
       }
     }
 
-    // Create formatted data for the chart
     const yearDataMap: Record<number, FormattedData> = {};
 
-    // Initialize with years from all prefectures
-    Object.entries(prefTotalPopulation).forEach(([, data]) => {
-      // 修正：使用しない変数は空のデストラクチャリングで対応
+    Object.entries(prefPopulation).forEach(([, data]) => {
       data.forEach((item) => {
         if (!yearDataMap[item.year]) {
           yearDataMap[item.year] = { year: item.year };
@@ -115,8 +109,7 @@ const PopulationGraph: React.FC<PopulationGraphProps> = ({
       });
     });
 
-    // Add population data for each prefecture
-    Object.entries(prefTotalPopulation).forEach(([prefCodeStr, data]) => {
+    Object.entries(prefPopulation).forEach(([prefCodeStr, data]) => {
       const numPrefCode = Number(prefCodeStr);
       const prefName =
         prefectureNames[numPrefCode] || `Prefecture ${prefCodeStr}`;
@@ -128,12 +121,11 @@ const PopulationGraph: React.FC<PopulationGraphProps> = ({
       });
     });
 
-    // Convert to array and sort by year
     const formattedArray = Object.values(yearDataMap).sort(
       (a, b) => a.year - b.year
     );
     setFormattedData(formattedArray);
-  }, [populationData, prefectureNames]);
+  }, [populationData, prefectureNames, selectedCategory]); // 依存配列に `selectedCategory` を追加
 
   if (selectedPrefectures.length === 0) {
     return <div className="mt-8 text-center">都道府県を選択してください</div>;
@@ -146,6 +138,23 @@ const PopulationGraph: React.FC<PopulationGraphProps> = ({
   return (
     <div className="mt-8">
       <h2 className="text-xl font-bold mb-4">都道府県別の人口推移</h2>
+
+      {/* カテゴリー選択用のドロップダウン */}
+      <div className="mb-4">
+        <label className="mr-2 font-bold">人口区分:</label>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="p-2 border border-gray-300 rounded"
+        >
+          {CATEGORIES.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {formattedData.length > 0 ? (
         <ResponsiveContainer width="100%" height={400}>
           <LineChart
@@ -181,7 +190,6 @@ const PopulationGraph: React.FC<PopulationGraphProps> = ({
             {selectedPrefectures.map((prefCode, index) => {
               const prefName =
                 prefectureNames[prefCode] || `Prefecture ${prefCode}`;
-              // Only create a line if we have data for this prefecture
               if (formattedData.some((item) => item[prefName] !== undefined)) {
                 return (
                   <Line
