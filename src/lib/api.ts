@@ -11,3 +11,16 @@ export const fetchPrefectures = async (): Promise<PrefectureResponse> => {
     throw error;
   }
 };
+
+//人口
+export const fetchPopulationData = async (prefCode: number) => {
+  try {
+    const response = await axios.get(
+      `/api/prefectures/population?prefCode=${prefCode}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch population data:", error);
+    throw error;
+  }
+};
