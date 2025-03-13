@@ -40,13 +40,20 @@ const PrefectureSelector = () => {
 
   return (
     <div>
-      <h2>都道府県一覧</h2>
-      <div>
+      <h2 style={{ textAlign: "center", padding: "20px 0" }}>都道府県一覧</h2>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "left",
+          flexWrap: "wrap",
+          margin: "0 20px",
+        }}
+      >
         {prefectures.map(
           (prefecture) => (
             console.log(prefecture.prefName),
             (
-              <label key={prefecture.prefCode}>
+              <label key={prefecture.prefCode} style={{ margin: "5px" }}>
                 <input
                   type="checkbox"
                   onChange={() => handleChange(prefecture.prefCode)}

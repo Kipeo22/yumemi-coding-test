@@ -128,24 +128,35 @@ const PopulationGraph: React.FC<PopulationGraphProps> = ({
   }, [populationData, prefectureNames, selectedCategory]); // 依存配列に `selectedCategory` を追加
 
   if (selectedPrefectures.length === 0) {
-    return <div className="mt-8 text-center">都道府県を選択してください</div>;
+    return (
+      <div
+        style={{ textAlign: "center", alignItems: "center", marginTop: "50px" }}
+      >
+        都道府県を選択してください
+      </div>
+    );
   }
 
   if (loading && formattedData.length === 0) {
-    return <div className="mt-8 text-center">データを読み込み中...</div>;
+    return (
+      <div
+        style={{ textAlign: "center", alignItems: "center", marginTop: "50px" }}
+      >
+        データを読み込み中...
+      </div>
+    );
   }
 
   return (
-    <div className="mt-8">
-      <h2 className="text-xl font-bold mb-4">都道府県別の人口推移</h2>
+    <div style={{ margin: "20px 0" }}>
+      <h2 style={{ textAlign: "center" }}>都道府県別の人口推移</h2>
 
       {/* カテゴリー選択用のドロップダウン */}
-      <div className="mb-4">
-        <label className="mr-2 font-bold">人口区分:</label>
+      <div>
+        <label>人口区分:</label>
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="p-2 border border-gray-300 rounded"
         >
           {CATEGORIES.map((category) => (
             <option key={category} value={category}>
